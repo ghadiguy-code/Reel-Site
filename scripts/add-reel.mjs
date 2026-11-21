@@ -286,6 +286,17 @@ async function readData() {
   }
 }
 
+// Card numbers always run 1, 2, 3... in the order the cards were added, with no gaps.
+function renumber(list) {
+  return list
+    .map((e, i) => [e, i])
+    .sort((a, b) => (Number(a[0].id) || 0) - (Number(b[0].id) || 0) || a[1] - b[1])
+    .map(([e], i) => {
+      e.id = i + 1;
+      return e;
+    });
+}
+
 /* ---------- main ---------- */
 
 async function writeSummary(env, text) {
@@ -310,11 +321,15 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   // Deleting a card needs only its number.
   if (/^delete/i.test(String(inputs.action || '').trim())) {
     if (!cardId) throw new UserError('To delete a card, type its number in the "Card number" box.');
-    const all = await readData();
+    const all = renumber(await readData());
     const target = all.find((e) => Number(e.id) === cardId);
     if (!target) throw new UserError(`There is no card number ${cardId}, so nothing was deleted.`);
-    await writeFile(DATA_FILE, JSON.stringify(all.filter((e) => e !== target), null, 2) + '\n');
-    await writeSummary(env, `🗑️ Deleted **#${target.id}: ${target.title}**\nIt disappears from the site in about a minute.`);
+    const rest = renumber(all.filter((e) => e !== target)).sort((a, b) => b.id - a.id);
+    await writeFile(DATA_FILE, JSON.stringify(rest, null, 2) + '\n');
+    await writeSummary(
+      env,
+      `🗑️ Deleted **#${target.id}: ${target.title}**\nThe remaining cards are renumbered 1, 2, 3… in order. It updates on the site in about a minute.`
+    );
     await setOutputs(env, {
       id: target.id,
       status: 'deleted',
@@ -344,7 +359,7 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   const info = await getProductInfo(product, warnings);
 
   // Sample entries are removed as soon as the first real one arrives.
-  const data = (await readData()).filter((e) => !e.sample);
+  const data = renumber((await readData()).filter((e) => !e.sample));
   let existing;
   if (cardId) {
     // The card number wins over link matching.
