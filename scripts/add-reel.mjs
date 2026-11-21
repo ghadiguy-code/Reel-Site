@@ -95,7 +95,13 @@ export function httpUrl(value) {
 export function normKey(value) {
   try {
     const u = new URL(value);
-    return u.hostname.replace(/^www\./, '').toLowerCase() + u.pathname.replace(/\/+$/, '').toLowerCase();
+    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+    // Amazon has many addresses for one product; the 10-character product code is the same in all of them.
+    if (/(^|\.)amazon\./.test(host)) {
+      const m = u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d|exec\/obidos\/asin)\/([A-Z0-9]{10})(?:[/?]|$)/i);
+      if (m) return 'amazon:' + m[1].toUpperCase();
+    }
+    return host + u.pathname.replace(/\/+$/, '').toLowerCase();
   } catch {
     return '';
   }
@@ -133,6 +139,8 @@ export function parseIssue(title = '', body = '') {
     image: get('product image'),
     title: get('title'),
     description: get('description'),
+    card: get('card number'),
+    action: get('action'),
   };
   // Fallback for an issue that was not created with the form.
   if (!out.product && urls[0]) out.product = urls[0];
@@ -149,6 +157,8 @@ function resolveInputs(env, argv) {
     image: env.IN_IMAGE || '',
     title: env.IN_TITLE || '',
     description: env.IN_DESCRIPTION || '',
+    card: env.IN_CARD || '',
+    action: env.IN_ACTION || '',
   };
 }
 
@@ -293,6 +303,26 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   const inputs = resolveInputs(env, argv);
   const warnings = [];
 
+  const cardRaw = String(inputs.card || '').trim().replace(/^#/, '');
+  const cardId = /^\d+$/.test(cardRaw) ? Number(cardRaw) : 0;
+  if (cardRaw && !cardId) throw new UserError('The card number should be just a number, like 2.');
+
+  // Deleting a card needs only its number.
+  if (/^delete/i.test(String(inputs.action || '').trim())) {
+    if (!cardId) throw new UserError('To delete a card, type its number in the "Card number" box.');
+    const all = await readData();
+    const target = all.find((e) => Number(e.id) === cardId);
+    if (!target) throw new UserError(`There is no card number ${cardId}, so nothing was deleted.`);
+    await writeFile(DATA_FILE, JSON.stringify(all.filter((e) => e !== target), null, 2) + '\n');
+    await writeSummary(env, `🗑️ Deleted **#${target.id}: ${target.title}**\nIt disappears from the site in about a minute.`);
+    await setOutputs(env, {
+      id: target.id,
+      status: 'deleted',
+      commit_message: truncate(`Delete reel #${target.id}: ${target.title}`, 90),
+    });
+    return { entry: target, status: 'deleted', warnings };
+  }
+
   const product = httpUrl(firstUrl(inputs.product));
   if (!product) throw new UserError('I need a product link that starts with http:// or https://.');
 
@@ -315,8 +345,15 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
 
   // Sample entries are removed as soon as the first real one arrives.
   const data = (await readData()).filter((e) => !e.sample);
-  const keys = new Set([normKey(product), normKey(info.finalUrl)]);
-  const existing = data.find((e) => keys.has(normKey(e.product)));
+  let existing;
+  if (cardId) {
+    // The card number wins over link matching.
+    existing = data.find((e) => Number(e.id) === cardId);
+    if (!existing) throw new UserError(`There is no card number ${cardId}, so nothing was changed.`);
+  } else {
+    const keys = new Set([normKey(product), normKey(info.finalUrl)]);
+    existing = data.find((e) => keys.has(normKey(e.product)));
+  }
 
   const title = inputs.title.trim() ? truncate(inputs.title.trim(), 140) : info.title || titleFromSlug(product);
   if (!existing && !inputs.title.trim() && !info.title) warnings.push('No title could be read, so one was made from the link. Send the link again with a Title to fix it.');
@@ -331,6 +368,7 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   if (existing) {
     status = 'updated';
     entry = existing;
+    if (cardId) entry.product = product;
     if (reel) entry.reel = reel;
     else if (!entry.reel && info.video) entry.reel = info.video;
     if (inputs.title.trim()) entry.title = title;
