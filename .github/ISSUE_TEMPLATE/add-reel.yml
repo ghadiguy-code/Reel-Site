@@ -2,14 +2,27 @@ name: Add a reel
 description: Paste a product link. The site updates itself in about a minute.
 title: "Add reel: "
 body:
+  - type: dropdown
+    id: action
+    attributes:
+      label: Action
+      description: Pick "Delete a card" only if you want to remove a card. Then fill in just the Card number below.
+      options:
+        - Add or update a card
+        - Delete a card
+      default: 0
+  - type: input
+    id: card
+    attributes:
+      label: Card number (optional)
+      description: Leave empty to add a new card. To change an existing card, type its number (the #2 on the card). To delete a card, type its number and pick Delete above.
+      placeholder: "2"
   - type: input
     id: product
     attributes:
       label: Product link
-      description: The link people should tap to buy. Title, description and image are read from this page.
+      description: Needed to add or change a card (not needed to delete). The link people tap to buy. Title, description and image are read from this page.
       placeholder: https://store.com/products/your-product
-    validations:
-      required: true
   - type: input
     id: reel
     attributes:
