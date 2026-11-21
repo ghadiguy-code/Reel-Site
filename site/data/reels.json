@@ -1,0 +1,32 @@
+[
+  {
+    "id": 3,
+    "sample": true,
+    "title": "Sample product: Rechargeable Fabric Shaver",
+    "description": "This is where the product description shows up. It is pulled automatically from the product page when you add a real reel.",
+    "image": "",
+    "reel": "",
+    "product": "https://example.com/product-3",
+    "added": "2026-11-21"
+  },
+  {
+    "id": 2,
+    "sample": true,
+    "title": "Sample product: Magnetic Phone Stand",
+    "description": "Tap the card to watch the reel. Tap the gold button to open the product link.",
+    "image": "",
+    "reel": "",
+    "product": "https://example.com/product-2",
+    "added": "2026-11-21"
+  },
+  {
+    "id": 1,
+    "sample": true,
+    "title": "Sample product: Galaxy Night Light",
+    "description": "Search works on names, descriptions and numbers, so a viewer can type #1 to jump straight to this one.",
+    "image": "",
+    "reel": "",
+    "product": "https://example.com/product-1",
+    "added": "2026-11-21"
+  }
+]

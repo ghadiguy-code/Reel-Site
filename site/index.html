@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reel Picks</title>
+  <meta name="description" content="Every product from my reels, with the reel and the link in one place.">
+  <meta name="theme-color" content="#0a0a0e">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <a class="brand" href="./" id="brand">Reel Picks</a>
+      <a class="ig" id="igLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 id="heroTitle">Every product from my reels</h1>
+      <p id="heroTag" class="tagline">Watch the reel, then grab the product.</p>
+      <p id="sampleNote" class="note" hidden>These are sample entries. They disappear as soon as you add your first real reel.</p>
+      <div class="tools">
+        <label class="search">
+          <span class="sr-only">Search products</span>
+          <input id="q" type="search" placeholder="Search by name or number…" autocomplete="off" enterkeyhint="search">
+        </label>
+        <p id="count" class="count" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <p id="status" class="status" role="status" hidden></p>
+    <section id="grid" class="grid" aria-label="Products"></section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap"><p id="disclosure"></p></div>
+  </footer>
+
+  <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="close" type="button" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <div class="stage" id="stage"></div>
+      <div class="modal-meta">
+        <p class="modal-num" id="mNum"></p>
+        <h2 id="mTitle"></h2>
+        <div class="actions">
+          <a id="mBuy" class="btn primary" href="#" target="_blank" rel="noopener sponsored"></a>
+          <a id="mOpen" class="btn ghost" href="#" target="_blank" rel="noopener"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
