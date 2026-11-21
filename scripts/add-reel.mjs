@@ -92,6 +92,11 @@ export function httpUrl(value) {
   }
 }
 
+const ID_PARAMS = new Set([
+  'q', 'query', 'k', 'keyword', 'keywords', 'search', 's', 'id', 'pid', 'p', 'sku',
+  'item', 'itemid', 'product', 'productid', 'product_id', 'url', 'u', 'v', 'cid',
+]);
+
 export function normKey(value) {
   try {
     const u = new URL(value);
@@ -101,7 +106,16 @@ export function normKey(value) {
       const m = u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d|exec\/obidos\/asin)\/([A-Z0-9]{10})(?:[/?]|$)/i);
       if (m) return 'amazon:' + m[1].toUpperCase();
     }
-    return host + u.pathname.replace(/\/+$/, '').toLowerCase();
+    let key = host + u.pathname.replace(/\/+$/, '').toLowerCase();
+    // Search-style links (google.com/search?q=...) only differ in the query, so keep the parts that identify the product.
+    if (u.pathname.split('/').filter(Boolean).length < 2) {
+      const extra = [...u.searchParams.entries()]
+        .filter(([k]) => ID_PARAMS.has(k.toLowerCase()))
+        .map(([k, v]) => `${k.toLowerCase()}=${v.toLowerCase()}`)
+        .sort();
+      if (extra.length) key += '?' + extra.join('&');
+    }
+    return key;
   } catch {
     return '';
   }
@@ -318,6 +332,9 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   const cardId = /^\d+$/.test(cardRaw) ? Number(cardRaw) : 0;
   if (cardRaw && !cardId) throw new UserError('The card number should be just a number, like 2.');
 
+  const forceNew = /^add as a new/i.test(String(inputs.action || '').trim());
+  if (forceNew && cardId) throw new UserError('Leave "Card number" empty when adding a new card.');
+
   // Deleting a card needs only its number.
   if (/^delete/i.test(String(inputs.action || '').trim())) {
     if (!cardId) throw new UserError('To delete a card, type its number in the "Card number" box.');
@@ -365,7 +382,7 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
     // The card number wins over link matching.
     existing = data.find((e) => Number(e.id) === cardId);
     if (!existing) throw new UserError(`There is no card number ${cardId}, so nothing was changed.`);
-  } else {
+  } else if (!forceNew) {
     const keys = new Set([normKey(product), normKey(info.finalUrl)]);
     existing = data.find((e) => keys.has(normKey(e.product)));
   }
