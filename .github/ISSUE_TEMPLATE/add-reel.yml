@@ -17,6 +17,12 @@ body:
       description: Your Instagram reel link, or a YouTube Shorts / direct .mp4 link. Leave empty if the product page already has the video.
       placeholder: https://www.instagram.com/reel/XXXXXXXXXXX/
   - type: input
+    id: image
+    attributes:
+      label: Product image link (optional)
+      description: Only needed if the card shows a coloured box instead of the product photo. Paste an image address, or the file name of a picture you uploaded into the site folder (like titan.jpg).
+      placeholder: https://... or titan.jpg
+  - type: input
     id: title
     attributes:
       label: Title (optional)
