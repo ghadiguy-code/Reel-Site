@@ -1,0 +1,28 @@
+name: Add a reel
+description: Paste a product link. The site updates itself in about a minute.
+title: "Add reel: "
+body:
+  - type: input
+    id: product
+    attributes:
+      label: Product link
+      description: The link people should tap to buy. Title, description and image are read from this page.
+      placeholder: https://store.com/products/your-product
+    validations:
+      required: true
+  - type: input
+    id: reel
+    attributes:
+      label: Reel link (optional)
+      description: Your Instagram reel link, or a YouTube Shorts / direct .mp4 link. Leave empty if the product page already has the video.
+      placeholder: https://www.instagram.com/reel/XXXXXXXXXXX/
+  - type: input
+    id: title
+    attributes:
+      label: Title (optional)
+      description: Only fill this in if you want to replace the title found on the product page.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (optional)
+      description: Only fill this in if you want to replace the description found on the product page.
