@@ -6,9 +6,10 @@ body:
     id: action
     attributes:
       label: Action
-      description: Pick "Delete a card" only if you want to remove a card. Then fill in just the Card number below.
+      description: Normally leave this on the first choice. Pick "Add as a new card" if a card keeps getting changed instead of a new one being added. Pick "Delete a card" to remove a card (then fill in just the Card number).
       options:
         - Add or update a card
+        - Add as a new card
         - Delete a card
       default: 0
   - type: input
