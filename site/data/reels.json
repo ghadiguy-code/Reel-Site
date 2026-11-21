@@ -1,32 +1,11 @@
 [
   {
-    "id": 3,
-    "sample": true,
-    "title": "Sample product: Rechargeable Fabric Shaver",
-    "description": "This is where the product description shows up. It is pulled automatically from the product page when you add a real reel.",
-    "image": "",
-    "reel": "",
-    "product": "https://example.com/product-3",
-    "added": "2026-11-21"
-  },
-  {
-    "id": 2,
-    "sample": true,
-    "title": "Sample product: Magnetic Phone Stand",
-    "description": "Tap the card to watch the reel. Tap the gold button to open the product link.",
-    "image": "",
-    "reel": "",
-    "product": "https://example.com/product-2",
-    "added": "2026-11-21"
-  },
-  {
     "id": 1,
-    "sample": true,
-    "title": "Sample product: Galaxy Night Light",
-    "description": "Search works on names, descriptions and numbers, so a viewer can type #1 to jump straight to this one.",
-    "image": "",
-    "reel": "",
-    "product": "https://example.com/product-1",
+    "title": "MAXIMA Hybrid Collection Analog Watch - For Men - Buy MAXIMA Hybrid Collection Analog Watch - For Men O-45843PPGW…",
+    "description": "A ₹500 watch that has absolutely no business looking this good. 😮‍💨⌚\n\nPicked this one up from Maxima for under ₹500, and honestly, the aqua dial is what caught my attention.\n\nIt's not the most expensive watch in my collection.\n\nIt's not the most complicated either.\nBut sometimes, you don't need to spend thousands to enjoy a good-looking watch.\n\nFor ₹500, would you buy it?\n\nYES or NO? 👇",
+    "image": "https://rukminim2.flixcart.com/image/300/300/xif0q/watch/b/p/r/-original-imahpbquvdntjhmz.jpeg",
+    "reel": "https://www.instagram.com/reel/DdJ5gjMuJy4/?utm_source=ig_web_copy_link&bqrl=MzRlODBiNWFlZA==&avpt=MzRlODBiNWFlZA==",
+    "product": "https://dl.flipkart.com/s/dYTVptuuuN",
     "added": "2026-11-21"
   }
 ]
