@@ -127,7 +127,13 @@ export function parseIssue(title = '', body = '') {
     return v === '_No response_' ? '' : v;
   };
   const urls = `${title}\n${body}`.match(/https?:\/\/[^\s<>)\]"']+/g) || [];
-  const out = { product: get('product'), reel: get('reel'), title: get('title'), description: get('description') };
+  const out = {
+    product: get('product link'),
+    reel: get('reel'),
+    image: get('product image'),
+    title: get('title'),
+    description: get('description'),
+  };
   // Fallback for an issue that was not created with the form.
   if (!out.product && urls[0]) out.product = urls[0];
   if (!out.reel && !Object.keys(sections).length && urls[1]) out.reel = urls[1];
@@ -140,6 +146,7 @@ function resolveInputs(env, argv) {
   return {
     product: env.IN_PRODUCT || product || '',
     reel: env.IN_REEL || reel || '',
+    image: env.IN_IMAGE || '',
     title: env.IN_TITLE || '',
     description: env.IN_DESCRIPTION || '',
   };
@@ -295,6 +302,15 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
     if (!reel) warnings.push("The reel link didn't look like a web link, so it was ignored.");
   }
 
+  // Image given by hand: a web link, or the file name of a picture uploaded into the site folder.
+  let imageOverride = '';
+  const rawImage = (inputs.image || '').trim();
+  if (rawImage) {
+    if (/^[\w\-.]+\.(png|jpe?g|webp|gif|avif)$/i.test(rawImage) && !rawImage.includes('..')) imageOverride = rawImage;
+    else imageOverride = httpUrl(firstUrl(rawImage));
+    if (!imageOverride) warnings.push("The product image link didn't look like a web link or an image file name, so it was ignored.");
+  }
+
   const info = await getProductInfo(product, warnings);
 
   // Sample entries are removed as soon as the first real one arrives.
@@ -303,7 +319,7 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
   const existing = data.find((e) => keys.has(normKey(e.product)));
 
   const title = inputs.title.trim() ? truncate(inputs.title.trim(), 140) : info.title || titleFromSlug(product);
-  if (!inputs.title.trim() && !info.title) warnings.push('No title could be read, so one was made from the link. Send the link again with a Title to fix it.');
+  if (!existing && !inputs.title.trim() && !info.title) warnings.push('No title could be read, so one was made from the link. Send the link again with a Title to fix it.');
 
   let description = inputs.description.trim() || truncate(info.description, 240);
   if (description.toLowerCase() === title.toLowerCase()) description = '';
@@ -320,7 +336,8 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
     if (inputs.title.trim()) entry.title = title;
     if (inputs.description.trim()) entry.description = description;
     if (!entry.description && description) entry.description = description;
-    if (!entry.image && info.image) entry.image = info.image;
+    if (imageOverride) entry.image = imageOverride;
+    else if (!entry.image && info.image) entry.image = info.image;
   } else {
     status = 'added';
     const id = data.reduce((max, e) => Math.max(max, Number(e.id) || 0), 0) + 1;
@@ -328,7 +345,7 @@ export async function run(env = process.env, argv = process.argv.slice(2)) {
       id,
       title,
       description,
-      image: info.image || '',
+      image: imageOverride || info.image || '',
       reel: reel || info.video || '',
       product,
       added: today,
