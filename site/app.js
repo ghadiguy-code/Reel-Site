@@ -242,6 +242,17 @@
       $('#brand').textContent = site.name;
       document.title = site.heading ? `${site.heading} · ${site.name}` : site.name;
     }
+    const logo = safeUrl(site.logo);
+    if (logo) {
+      const img = document.createElement('img');
+      img.className = 'logo';
+      img.src = logo;
+      img.alt = '';
+      img.addEventListener('error', () => img.remove(), { once: true }); // no logo file yet: just show the name
+      $('#brand').prepend(img);
+      const icon = document.querySelector('link[rel="icon"]');
+      if (icon) { icon.href = logo; icon.removeAttribute('type'); }
+    }
     if (site.heading) $('#heroTitle').textContent = site.heading;
     if (site.tagline != null) $('#heroTag').textContent = site.tagline;
 
