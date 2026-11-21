@@ -1,0 +1,93 @@
+name: Add reel
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      product_url:
+        description: Product link
+        required: true
+        type: string
+      reel_url:
+        description: Reel link (optional)
+        required: false
+        type: string
+      title:
+        description: Title (optional, otherwise read from the product page)
+        required: false
+        type: string
+      description:
+        description: Description (optional, otherwise read from the product page)
+        required: false
+        type: string
+
+concurrency:
+  group: add-reel
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'Add reel'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add the entry
+        id: add
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          IN_PRODUCT: ${{ inputs.product_url }}
+          IN_REEL: ${{ inputs.reel_url }}
+          IN_TITLE: ${{ inputs.title }}
+          IN_DESCRIPTION: ${{ inputs.description }}
+          SUMMARY_FILE: ${{ runner.temp }}/summary.md
+        run: node scripts/add-reel.mjs
+
+      - name: Save and publish
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_MSG: ${{ steps.add.outputs.commit_message }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data/reels.json
+          if git diff --cached --quiet; then
+            echo "No changes to save."
+            exit 0
+          fi
+          git commit -m "${COMMIT_MSG:-Update reels}"
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+          gh workflow run deploy.yml --ref "$GITHUB_REF_NAME"
+
+      - name: Reply on the issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUMMARY_FILE: ${{ runner.temp }}/summary.md
+          ADD_OUTCOME: ${{ steps.add.outcome }}
+          PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
+        run: |
+          if [ -s "$SUMMARY_FILE" ]; then
+            gh issue comment "$ISSUE" --body-file "$SUMMARY_FILE"
+          else
+            gh issue comment "$ISSUE" --body "Something went wrong before I could add this. Details: $RUN_URL"
+          fi
+          if [ "$ADD_OUTCOME" = "success" ] && [ "$PUBLISH_OUTCOME" = "success" ]; then
+            gh issue close "$ISSUE" --reason completed
+          fi
