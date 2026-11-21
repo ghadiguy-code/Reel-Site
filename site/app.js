@@ -278,7 +278,10 @@
         loadJSON('data/reels.json', window.__REELS__),
       ]);
       state.site = site || {};
-      state.items = (Array.isArray(items) ? items : []).filter((i) => i && i.title).sort((a, b) => Number(b.id) - Number(a.id));
+      // Numbers always run 1, 2, 3... in the order cards were added, even if some were deleted.
+      const list = (Array.isArray(items) ? items : []).filter((i) => i && i.title).sort((a, b) => Number(a.id) - Number(b.id));
+      list.forEach((item, i) => { item.id = i + 1; });
+      state.items = list.reverse();
     } catch (err) {
       statusEl.hidden = false;
       statusEl.textContent = "Couldn't load the list. If you opened this file straight from disk, view it through a web server or GitHub Pages instead.";
